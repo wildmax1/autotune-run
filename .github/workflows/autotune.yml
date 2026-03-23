@@ -1,4 +1,3 @@
-
 name: Nightscout Autotune
 
 on:
@@ -17,18 +16,30 @@ jobs:
 
       - run: npm install -g oref0
 
+      # 🔥 데이터 폴더 생성
+      - name: Prepare directory
+        run: |
+          mkdir -p autotune/settings
+
+      # 🔥 기본 프로파일 생성 (임시)
+      - name: Create dummy profile
+        run: |
+          echo '{}' > autotune/settings/autotune.json
+          echo '{}' > autotune/settings/pumpprofile.json
+
+      # 🔥 Autotune 실행
       - name: Run Autotune
         run: |
-          mkdir -p output
           oref0-autotune \
-            --ns-host $NIGHTSCOUT_HOST \
-            --api-secret $API_SECRET \
-            --dir ./output
+            --dir=./autotune \
+            --ns-host=$NIGHTSCOUT_HOST \
+            --api-secret=$API_SECRET
         env:
           NIGHTSCOUT_HOST: ${{ secrets.NIGHTSCOUT_HOST }}
           API_SECRET: ${{ secrets.API_SECRET }}
 
+      # 결과 업로드
       - uses: actions/upload-artifact@v4
         with:
           name: autotune-result
-          path: output
+          path: autotune
