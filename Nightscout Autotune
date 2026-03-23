@@ -1,0 +1,38 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 18 * * *"
+
+jobs:
+  autotune:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: |
+          npm install -g oref0
+
+      - name: Run Autotune
+        env:
+          NIGHTSCOUT_HOST: ${{ secrets.NIGHTSCOUT_HOST }}
+          API_SECRET: ${{ secrets.API_SECRET }}
+        run: |
+          mkdir -p output
+          oref0-autotune \
+            --ns-host "$NIGHTSCOUT_HOST" \
+            --api-secret "$API_SECRET" \
+            > output/autotune_result.json
+
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: autotune-result
+          path: output/autotune_result.json
